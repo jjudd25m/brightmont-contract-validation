@@ -36,9 +36,10 @@ jobs:
 
       - name: Build
         working-directory: frontend
+        env:
+          CI: false
         run: npm run build
 
-      # Preporuka: OIDC (bez AWS access key/secret u GitHub Secrets)
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
