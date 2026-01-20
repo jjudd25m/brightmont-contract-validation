@@ -89,6 +89,7 @@ function App({ signOut, user }) {
           <PanelResizeHandle style={{ width: "6px", cursor: "col-resize", background: "#ddd" }} />
             <Panel defaultSize={40} minSize={20} style={{ marginLeft: "10px"}}>
                 <h1 style={{ textAlign:"center" }}>
+                    test cicd
                     Welcome {user.username}!
                     <Button onClick={signOut}>Logout</Button>
                 </h1>
