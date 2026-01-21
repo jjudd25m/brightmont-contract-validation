@@ -27,7 +27,6 @@ out/
 .env
 .env.local
 .env.development
-.env.production
 
 # =========================
 # Python
