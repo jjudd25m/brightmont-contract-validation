@@ -1,0 +1,80 @@
+name: Deploy DB Lambda
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-db-lambda.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-db-lambda
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      ZIP_NAME: db_insert_deployment_package.zip
+      S3_BUCKET: llama-parse-lambda-function-code
+      S3_KEY: lambda-deployments/db_insert_deployment_package.zip
+      LAMBDA_FUNCTION_NAME: db_handler
+      BUILD_IMAGE: lambda-zip-builder:py314
+      CONTAINER_NAME: lambda_zip_build_tmp
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build docker image (linux/amd64)
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            -f Dockerfile.lambda-build \
+            -t "${BUILD_IMAGE}" \
+            --load \
+            .
+
+      - name: Create container and extract /asset
+        run: |
+          docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+          docker create --name "${CONTAINER_NAME}" "${BUILD_IMAGE}" >/dev/null
+
+          rm -rf build_asset
+          mkdir -p build_asset
+
+          docker cp "${CONTAINER_NAME}:/asset/." build_asset/
+          docker rm -f "${CONTAINER_NAME}" >/dev/null
+
+      - name: Zip build_asset
+        run: |
+          rm -f "${ZIP_NAME}"
+          ( cd build_asset && zip -q -r9 "../${ZIP_NAME}" . )
+          ls -lh "${ZIP_NAME}"
+
+      - name: Upload zip to S3
+        run: |
+          aws s3 cp "${ZIP_NAME}" "s3://${S3_BUCKET}/${S3_KEY}"
+
+      - name: Update Lambda function code
+        run: |
+          aws lambda update-function-code \
+            --function-name "${LAMBDA_FUNCTION_NAME}" \
+            --s3-bucket "${S3_BUCKET}" \
+            --s3-key "${S3_KEY}" \
+            --publish \
+            --output json

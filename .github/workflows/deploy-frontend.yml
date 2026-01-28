@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - "frontend/**"
-      - ".github/workflows/deploy-frontend-to-s3.yml"
+      - ".github/workflows/deploy-frontend.yml"
 
 permissions:
   id-token: write
