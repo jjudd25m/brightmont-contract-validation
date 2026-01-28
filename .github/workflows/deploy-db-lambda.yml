@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - "frontend/**"
+      - "lambda_db_save/**"
       - ".github/workflows/deploy-db-lambda.yml"
 
 permissions:
