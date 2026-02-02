@@ -6,6 +6,7 @@ on:
     paths:
       - "lambda_extract/**"
       - ".github/workflows/deploy-extract-lambda.yml"
+    workflow_dispatch: {}
 
 permissions:
   id-token: write
@@ -42,11 +43,10 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push image (linux/amd64)
-        working-directory: lambda_extract
         uses: docker/build-push-action@v6
         with:
           context: ./lambda_extract
-          file:  ./lambda_extract/Dockerfile.lambda-build
+          file: ./lambda_extract/Dockerfile.lambda-build
           platforms: linux/amd64
           push: true
           tags: |
