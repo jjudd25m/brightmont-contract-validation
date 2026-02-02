@@ -1,0 +1,31 @@
+FROM public.ecr.aws/lambda/python:3.13
+
+# Where we assemble the Lambda zip contents
+# WORKDIR /asset
+
+# RUN yum install -y \
+      # postgresql-devel \
+      # gcc \
+      # python3-devel && \
+    # yum clean all
+
+# Install dependencies into /asset (Lambda expects libs alongside your code)
+# RUN python -m pip install --upgrade pip
+
+# Put your handler in the zip root
+# COPY lambda_function.py /asset/lambda_function.py
+# COPY validators /asset/validators
+COPY lambda_function.py ${LAMBDA_TASK_ROOT}
+COPY schemas ${LAMBDA_TASK_ROOT}/schemas
+COPY extract ${LAMBDA_TASK_ROOT}/extract
+COPY aws ${LAMBDA_TASK_ROOT}/aws
+
+# Install the lib into the zip root
+# RUN python -m pip install --no-cache-dir --target /asset llama_cloud_services email-validator pdfplumber #  psycopg2-binary 
+RUN python -m pip install --no-cache-dir --target ${LAMBDA_TASK_ROOT} llama_cloud_services email-validator pdfplumber #  psycopg2-binary 
+
+CMD ["lambda_function.lambda_handler"]
+
+# (optional) if you also have requirements.txt, do:
+# COPY requirements.txt /tmp/requirements.txt
+# RUN python -m pip install --no-cache-dir --target /asset -r /tmp/requirements.txt
