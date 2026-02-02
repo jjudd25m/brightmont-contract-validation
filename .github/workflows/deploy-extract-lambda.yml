@@ -20,7 +20,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AWS_REGION: us-east-1
       ECR_REPOSITORY: llama_extract_lambda
       LAMBDA_FUNCTION_NAME: llama_parse_extractor2
 
@@ -35,9 +34,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -48,11 +44,10 @@ jobs:
 
       - name: Build and push image (linux/amd64)
         working-directory: lambda_extract
-        id: build-image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: Dockerfile.lambda-build
+          context: ./lambda_extract
+          file:  ./lambda_extract/Dockerfile.lambda-build
           platforms: linux/amd64
           push: true
           tags: |
