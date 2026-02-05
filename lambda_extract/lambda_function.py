@@ -8,7 +8,7 @@ import pdfplumber
 from schemas.registry import titles, EXTRACTION_PLANS, POST_PROCESSING_PLAN, \
     TuitionSchemaFirstPage, TuitionSchemaSecondPage
 
-from aws.client import AwsAdapter
+from aws.client import AwsAdapter, get_s3_path
 
 aws = AwsAdapter()
 
@@ -20,8 +20,7 @@ extractor = LLMExtractor(
 )
 
 def lambda_handler(event, context):
-    qs_params = event.get("queryStringParameters") or {}
-    path_value = qs_params.get("s3_path")
+    path_value = get_s3_path(event)
 
     print(f"Path value: {path_value}")
     if path_value:
