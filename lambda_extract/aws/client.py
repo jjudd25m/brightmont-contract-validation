@@ -8,6 +8,21 @@ import boto3
 from botocore.exceptions import ClientError
 
 
+def get_s3_path(event: dict) -> str:
+    path_value = (event.get("queryStringParameters") or {}).get("s3_path")
+    if path_value:
+        return path_value
+
+    if event.get("source") == "aws.s3":
+        detail = event.get("detail") or {}
+        # bucket = (detail.get("bucket") or {}).get("name")
+        key = (detail.get("object") or {}).get("key")
+        if key:
+            return key
+
+    raise ValueError("Could not determine s3_path from event.")
+
+
 @dataclass(frozen=True)
 class AwsConfig:
     # region: str = os.getenv("REGION")
