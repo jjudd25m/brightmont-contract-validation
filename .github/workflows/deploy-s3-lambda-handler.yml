@@ -1,0 +1,46 @@
+name: Deploy s3 Lambda handler
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "lambda_s3_handler/**"
+      - ".github/workflows/deploy-s3-lambda-handler.yml"
+    workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-s3-lambda-handler
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      LAMBDA_FUNCTION_NAME: agreements_feedback_s3_handler
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Build zip (lambda_function.py at root)
+        run: |
+          cd lambda_s3_handler
+          zip -r ../lambda.zip .
+
+      - name: Deploy to Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name "${{ env.LAMBDA_FUNCTION_NAME }}" \
+            --zip-file "fileb://lambda.zip" \
+            --publish
