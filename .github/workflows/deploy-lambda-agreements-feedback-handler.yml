@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - "lambda_agreements_fedback_handler/**"
+      - "lambda_agreements_feedback_handler/**"
       - ".github/workflows/deploy-lambda-agreements-feedback-handler.yml"
     workflow_dispatch: {}
 
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ZIP_NAME: lambda_agreements_fedback_handler.zip
+      ZIP_NAME: lambda_agreements_feedback_handler.zip
       LAMBDA_FUNCTION_NAME: agreements_feedback_handler
       BUILD_IMAGE: lambda-zip-builder:py314
       CONTAINER_NAME: lambda_zip_build_tmp
@@ -41,7 +41,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build docker image (linux/amd64)
-        working-directory: lambda_agreements_fedback_handler
+        working-directory: lambda_agreements_feedback_handler
         run: |
           docker buildx build \
             --platform linux/amd64 \
@@ -51,7 +51,7 @@ jobs:
             .
 
       - name: Create container and extract /asset
-        working-directory: lambda_agreements_fedback_handler
+        working-directory: lambda_agreements_feedback_handler
         run: |
           docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
           docker create --name "${CONTAINER_NAME}" "${BUILD_IMAGE}" >/dev/null
@@ -63,7 +63,7 @@ jobs:
           docker rm -f "${CONTAINER_NAME}" >/dev/null
 
       - name: Zip build_asset
-        working-directory: lambda_db_save
+        working-directory: lambda_agreements_feedback_handler
         run: |
           rm -f "${ZIP_NAME}"
           ( cd build_asset && zip -q -r9 "../${ZIP_NAME}" . )
