@@ -6,6 +6,7 @@ on:
     paths:
       - "lambda_db_save/**"
       - ".github/workflows/deploy-db-lambda.yml"
+    workflow_dispatch: {}
 
 permissions:
   id-token: write
