@@ -1,0 +1,54 @@
+name: Deploy Lambda agreements feedback handler
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "lambda_agreements_fedback_handler/**"
+      - ".github/workflows/deploy-lambda-agreements-feedback-handler.yml"
+    workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-lambda-agreements-feedback-handler
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      LAMBDA_FUNCTION_NAME: agreements_feedback_handler
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install dependencies
+        run: |
+          mkdir package
+          pip install psycopg2-binary -t package
+
+      - name: Copy lambda code
+        run: |
+          cp lambda_agreements_fedback_handler/lambda_function.py package/
+
+      - name: Zip
+        run: |
+          cd package
+          zip -r ../lambda.zip .
+
+      - name: Deploy
+        run: |
+          aws lambda update-function-code \
+            --function-name "${{ env.LAMBDA_FUNCTION_NAME }}" \
+            --zip-file fileb://lambda.zip \
+            --publish
