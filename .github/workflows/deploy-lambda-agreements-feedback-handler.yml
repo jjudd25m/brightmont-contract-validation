@@ -70,6 +70,7 @@ jobs:
           ls -lh "${ZIP_NAME}"
 
       - name: Update Lambda function code
+        working-directory: lambda_agreements_feedback_handler
         run: |
           aws lambda update-function-code \
             --function-name "${LAMBDA_FUNCTION_NAME}" \
