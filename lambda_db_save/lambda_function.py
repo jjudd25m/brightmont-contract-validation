@@ -30,7 +30,6 @@ def get_secret(secret_parameter):
 _conn = None
 DB_URL = get_secret("DATABASE_URL")
 
-
 def get_conn():
     global _conn
     if _conn is None or _conn.closed:
